@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 
 # Setup user 'ubuntu' (bisa diubah sesuai keinginan)
 RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
-RUN echo 'ubuntu:password_anda' | chpasswd
+RUN echo 'root:12345' | chpasswd
 
 # Konfigurasi SSHD untuk container
 RUN mkdir /var/run/sshd
