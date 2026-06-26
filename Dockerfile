@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
 # Hindari interaksi saat instalasi paket
 ENV DEBIAN_FRONTEND=noninteractive
