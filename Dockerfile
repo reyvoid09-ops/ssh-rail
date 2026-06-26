@@ -1,30 +1,24 @@
 FROM ubuntu:22.04
 
-# Hindari interaksi saat instalasi paket
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install OpenSSH Server, sudo, dan curl
+# Install SSH Server dan tools dasar
 RUN apt-get update && apt-get install -y \
     openssh-server \
     sudo \
     curl \
+    nano \
     && rm -rf /var/lib/apt/lists/*
 
-# Setup user 'ubuntu' (bisa diubah sesuai keinginan)
-RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
-RUN echo 'root:12345' | chpasswd
+# Konfigurasi agar SSH mengizinkan login dengan password dan root
+RUN mkdir -p /var/run/sshd \
+    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-# Konfigurasi SSHD untuk container
-RUN mkdir /var/run/sshd
-RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
-RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+# Ekspos port 22
+EXPOSE 22
 
-# Salin script entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Buat env untuk password default (bisa diubah di dashboard Railway)
+ENV SSH_PASSWORD="12345678"
 
-# Expose Port SSH dan Port Web Default Railway
-EXPOSE 22 8080
-
-# Jalankan entrypoint saat container mulai
-ENTRYPOINT ["/entrypoint.sh"]
+# Jalankan script untuk set password dan start SSH service
+CMD echo "root:$SSH_PASSWORD" | chpasswd && /usr/sbin/sshd -D
